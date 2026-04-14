@@ -6,7 +6,18 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { jsonrepair } from "jsonrepair";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+
+let ai: GoogleGenAI | null = null;
+function getAI() {
+  if (!ai) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY environment variable is required");
+    }
+    ai = new GoogleGenAI({ apiKey });
+  }
+  return ai;
+}
 
 async function startServer() {
   const app = express();
@@ -41,7 +52,7 @@ If suggesting items to add to their shopping list, include their exact 'id' in t
 IMPORTANT: Keep your response concise. Limit your suggested products to a maximum of 10 items to avoid overwhelming the user.`;
 
     try {
-      const response = await ai.models.generateContent({
+      const response = await getAI().models.generateContent({
         model: "gemini-3-flash-preview",
         contents: [...history, { role: 'user', parts: [{ text: userMessage }] }],
         config: {
@@ -139,7 +150,7 @@ EXTRACTION RULES:
 `;
 
     try {
-      const response = await ai.models.generateContent({
+      const response = await getAI().models.generateContent({
         model: "gemini-3-flash-preview",
         contents: {
           parts: [
@@ -248,7 +259,7 @@ EXTRACTION RULES:
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*', (req, res) => {
+    app.get('*all', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
