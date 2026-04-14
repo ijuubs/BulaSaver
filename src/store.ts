@@ -21,6 +21,7 @@ interface AppState {
   user: any | null;
   isAdmin: boolean;
   deals: Deal[];
+  dealsLoading: boolean;
   shoppingList: ListItem[];
   pendingOfflineDeals: Deal[];
   userLocation: { lat: number, lon: number } | null;
@@ -74,6 +75,7 @@ export const useAppStore = create<AppState>()(
       user: null,
       isAdmin: false,
       deals: initialDeals,
+      dealsLoading: false,
       shoppingList: [],
       pendingOfflineDeals: [],
       userLocation: null,
@@ -269,6 +271,7 @@ export const useAppStore = create<AppState>()(
       },
       fetchDealsFromSupabase: async () => {
         if (!supabase) return;
+        set({ dealsLoading: true });
         try {
           const { data, error } = await supabase.from('deals').select('*');
           if (error) throw error;
@@ -283,6 +286,8 @@ export const useAppStore = create<AppState>()(
           }
         } catch (error) {
           console.error('Error fetching from Supabase:', error);
+        } finally {
+          set({ dealsLoading: false });
         }
       },
       addUploadedFlyer: (flyer) => set((state) => ({

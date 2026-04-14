@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useAppStore } from '../store';
 import ProductCard from '../components/ProductCard';
+import ProductCardSkeleton from '../components/ProductCardSkeleton';
 import StapleEssentials from '../components/StapleEssentials';
 import { 
   Search, SlidersHorizontal, Upload, MapPin, TrendingDown, Trophy, 
@@ -15,6 +16,7 @@ import { motion, AnimatePresence } from 'motion/react';
 
 export default function Home() {
   const allDeals = useAppStore(state => state.deals);
+  const dealsLoading = useAppStore(state => state.dealsLoading);
   const userLocation = useAppStore(state => state.userLocation);
   const setUserLocation = useAppStore(state => state.setUserLocation);
   const selectedRegion = useAppStore(state => state.selectedRegion);
@@ -30,8 +32,16 @@ export default function Home() {
   }, [allDeals]);
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const allDealsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   const handleCategoryClick = (category: string) => {
     setSelectedCategory(selectedCategory === category ? null : category);
@@ -137,8 +147,8 @@ export default function Home() {
 
   const filteredDeals = useMemo(() => {
     let result = dealsWithMetrics.filter(deal => {
-      const matchesSearch = (deal?.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) || 
-                            (deal.brand && deal.brand.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchesSearch = (deal?.name?.toLowerCase() || '').includes(debouncedSearchQuery.toLowerCase()) || 
+                            (deal.brand && deal.brand.toLowerCase().includes(debouncedSearchQuery.toLowerCase()));
       const matchesCategory = selectedCategory ? deal.category === selectedCategory : true;
       return matchesSearch && matchesCategory;
     });
@@ -392,20 +402,24 @@ export default function Home() {
             layout
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
           >
-            {visibleItems.map((deal, idx) => (
-              <motion.div
-                key={deal.product_id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: idx * 0.05 }}
-              >
-                <ProductCard 
-                  deal={deal} 
-                  isBestValue={bestValueIds.has(deal.product_id)}
-                  userLocation={userLocation}
-                />
-              </motion.div>
-            ))}
+            {dealsLoading ? (
+              Array.from({ length: 8 }).map((_, i) => <ProductCardSkeleton key={i} />)
+            ) : (
+              visibleItems.map((deal, idx) => (
+                <motion.div
+                  key={deal.product_id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: idx * 0.05 }}
+                >
+                  <ProductCard 
+                    deal={deal} 
+                    isBestValue={bestValueIds.has(deal.product_id)}
+                    userLocation={userLocation}
+                  />
+                </motion.div>
+              ))
+            )}
           </motion.div>
         </AnimatePresence>
 

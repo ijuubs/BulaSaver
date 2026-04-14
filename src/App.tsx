@@ -1,15 +1,16 @@
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Layout from './components/Layout';
-import Home from './pages/Home';
-import UploadFlyer from './pages/UploadFlyer';
-import ShoppingList from './pages/ShoppingList';
-import Savings from './pages/Savings';
-import Search from './pages/Search';
-import FlyerHistory from './pages/FlyerHistory';
-import Community from './pages/Community';
-import Onboarding from './components/Onboarding';
 import { useAppStore } from './store';
+
+const Layout = lazy(() => import('./components/Layout'));
+const Home = lazy(() => import('./pages/Home'));
+const UploadFlyer = lazy(() => import('./pages/UploadFlyer'));
+const ShoppingList = lazy(() => import('./pages/ShoppingList'));
+const Savings = lazy(() => import('./pages/Savings'));
+const Search = lazy(() => import('./pages/Search'));
+const FlyerHistory = lazy(() => import('./pages/FlyerHistory'));
+const Community = lazy(() => import('./pages/Community'));
+const Onboarding = lazy(() => import('./components/Onboarding'));
 
 export default function App() {
   const syncOfflineDeals = useAppStore(state => state.syncOfflineDeals);
@@ -40,19 +41,21 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      {!hasCompletedOnboarding && <Onboarding />}
+      <Suspense fallback={null}>
+        {!hasCompletedOnboarding && <Onboarding />}
 
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/search" element={<Search />} />
-          <Route path="/community" element={<Community />} />
-          <Route path="/upload" element={<UploadFlyer />} />
-          <Route path="/list" element={<ShoppingList />} />
-          <Route path="/savings" element={<Savings />} />
-          <Route path="/history" element={<FlyerHistory />} />
-        </Routes>
-      </Layout>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/search" element={<Search />} />
+            <Route path="/community" element={<Community />} />
+            <Route path="/upload" element={<UploadFlyer />} />
+            <Route path="/list" element={<ShoppingList />} />
+            <Route path="/savings" element={<Savings />} />
+            <Route path="/history" element={<FlyerHistory />} />
+          </Routes>
+        </Layout>
+      </Suspense>
     </BrowserRouter>
   );
 }

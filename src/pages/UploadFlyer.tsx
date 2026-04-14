@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, FileImage, Loader2, CheckCircle2, AlertCircle, Trash2, Edit2, Check, X, Image as ImageIcon, WifiOff, Clock } from 'lucide-react';
-import { extractDealsFromFlyer } from '../services/geminiService';
+// // import { extractDealsFromFlyer } from '../services/geminiService';
 import { useAppStore } from '../store';
 import { Deal, Product } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
@@ -356,7 +356,18 @@ export default function UploadFlyer() {
           // We converted it to jpeg during compression
           const mimeType = 'image/jpeg';
           let base64Data = base64String;
-          const flyerData = await extractDealsFromFlyer(base64Data, mimeType);
+          
+          const response = await fetch('/api/extract', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ base64Image: base64Data, mimeType }),
+          });
+          
+          if (!response.ok) throw new Error("Failed to extract deals");
+          const flyerData = await response.json();
+          
           base64Data = ''; // Free memory
           
           setFileProgresses(prev => {

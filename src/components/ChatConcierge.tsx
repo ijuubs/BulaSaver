@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send, Bot, ListPlus, Plus, CheckCircle2, Loader2, ChevronDown } from 'lucide-react';
 import { useAppStore } from '../store';
-import { askConcierge } from '../services/geminiService';
+// import { askConcierge } from '../services/geminiService';
 import { Deal } from '../types';
 import Markdown from 'react-markdown';
 
@@ -59,18 +59,27 @@ export default function ChatConcierge() {
     setIsLoading(true);
 
     try {
-      const response = await askConcierge(userText, apiHistory, activeDeals);
+      const response = await fetch('/api/concierge', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userMessage: userText, history: apiHistory, deals: activeDeals }),
+      });
+      
+      if (!response.ok) throw new Error("Failed to get concierge response");
+      const data = await response.json();
       
       // Match suggested IDs back to actual Deal objects
-      const suggestedIds = response.suggested_product_ids || [];
+      const suggestedIds = data.suggested_product_ids || [];
       const suggestedDeals = suggestedIds
-        .map(id => activeDeals.find(d => d.product_id === id))
+        .map((id: string) => activeDeals.find(d => d.product_id === id))
         .filter((d): d is Deal => d !== undefined);
 
       const newAssistantMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        text: response.message || "I found some deals for you.",
+        text: data.message || "I found some deals for you.",
         suggestedDeals: suggestedDeals.length > 0 ? suggestedDeals : undefined
       };
 
@@ -81,7 +90,7 @@ export default function ChatConcierge() {
         const newHistory = [
           ...prev,
           { role: 'user', parts: [{ text: userText }] },
-          { role: 'model', parts: [{ text: JSON.stringify(response) }] }
+          { role: 'model', parts: [{ text: JSON.stringify(data) }] }
         ];
         // Keep only the last 10 messages (5 turns) to prevent token overflow
         return newHistory.slice(-10);

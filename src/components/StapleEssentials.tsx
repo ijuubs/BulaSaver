@@ -22,11 +22,11 @@ const STAPLE_CONFIG = [
   { name: 'Laundry Soap', keywords: ['soap', 'laundry'] },
 ];
 
-export default function StapleEssentials() {
+function useStapleDeals() {
   const allDeals = useAppStore(state => state.deals);
   const userLocation = useAppStore(state => state.userLocation);
 
-  const stapleDeals = useMemo(() => {
+  return useMemo(() => {
     const now = new Date();
     const activeDeals = allDeals.filter(d => !d.is_archived && new Date(d.end_date) >= now);
 
@@ -35,27 +35,23 @@ export default function StapleEssentials() {
         staple.keywords.every(kw => deal.name.toLowerCase().includes(kw))
       );
 
-      // Find the best deal based on normalized price (price per unit) and proximity
       const bestDeal = matchingDeals.length > 0 
         ? matchingDeals.reduce((prev, curr) => {
             const prevNorm = getNormalizedPrice(prev);
             const currNorm = getNormalizedPrice(curr);
             
-            // 1. Compare by price per unit if both have it
             if (prevNorm.pricePerKg !== null && currNorm.pricePerKg !== null) {
               if (Math.abs(currNorm.pricePerKg - prevNorm.pricePerKg) > 0.01) {
                 return currNorm.pricePerKg < prevNorm.pricePerKg ? curr : prev;
               }
             }
             
-            // 2. Otherwise compare by effective price
             const prevPrice = getEffectivePrice(prev);
             const currPrice = getEffectivePrice(curr);
             if (Math.abs(currPrice - prevPrice) > 0.01) {
               return currPrice < prevPrice ? curr : prev;
             }
 
-            // 3. If prices are similar, prioritize proximity
             if (userLocation) {
               const prevCoords = getStoreCoordinates(prev.location || prev.store);
               const currCoords = getStoreCoordinates(curr.location || curr.store);
@@ -74,6 +70,10 @@ export default function StapleEssentials() {
       return { ...staple, deal: bestDeal };
     }).filter(item => item.deal !== null);
   }, [allDeals, userLocation]);
+}
+
+const StapleEssentials = React.memo(() => {
+  const stapleDeals = useStapleDeals();
 
   if (stapleDeals.length === 0) return null;
 
@@ -108,4 +108,6 @@ export default function StapleEssentials() {
       </div>
     </section>
   );
-}
+});
+
+export default StapleEssentials;
