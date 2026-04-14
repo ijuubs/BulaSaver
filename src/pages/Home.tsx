@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useAppStore } from '../store';
 import ProductCard from '../components/ProductCard';
+import StapleEssentials from '../components/StapleEssentials';
 import { 
   Search, SlidersHorizontal, Upload, MapPin, TrendingDown, Trophy, 
   ShoppingBasket, ScanLine, ListTodo, Droplets, Wheat, Database, 
@@ -316,51 +317,8 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Featured Collections */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <motion.div 
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => {
-            setActiveFilter('basic_needs');
-            allDealsRef.current?.scrollIntoView({ behavior: 'smooth' });
-          }}
-          className="group relative h-48 rounded-[2.5rem] overflow-hidden cursor-pointer shadow-lg"
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-rose-500 to-pink-600"></div>
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-          <div className="relative z-10 p-8 h-full flex flex-col">
-            <div className="bg-white/20 backdrop-blur-md w-fit px-3 py-1 rounded-full mb-auto border border-white/20">
-              <Flame className="w-4 h-4 text-white" />
-            </div>
-            <h3 className="text-2xl font-black text-white mb-1">Top 10 Basic Needs</h3>
-            <p className="text-rose-100 font-medium flex items-center gap-2">
-              Save on everyday essentials <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </p>
-          </div>
-          <ShoppingBasket className="absolute -right-8 -bottom-8 w-48 h-48 text-white/10 -rotate-12" />
-        </motion.div>
-
-        <motion.div 
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => navigate('/savings#smart-watchlist')}
-          className="group relative h-48 rounded-[2.5rem] overflow-hidden cursor-pointer shadow-lg"
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-400 to-orange-500"></div>
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-          <div className="relative z-10 p-8 h-full flex flex-col">
-            <div className="bg-white/20 backdrop-blur-md w-fit px-3 py-1 rounded-full mb-auto border border-white/20">
-              <Bell className="w-4 h-4 text-white" />
-            </div>
-            <h3 className="text-2xl font-black text-white mb-1">Smart Watchlist</h3>
-            <p className="text-amber-50 font-medium flex items-center gap-2">
-              Track your favorite items <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </p>
-          </div>
-          <ListTodo className="absolute -right-8 -bottom-8 w-48 h-48 text-white/10 -rotate-12" />
-        </motion.div>
-      </div>
+      {/* Staple Essentials */}
+      <StapleEssentials />
 
       {/* Categories Section */}
       <section>
